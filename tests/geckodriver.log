@@ -1,0 +1,61 @@
+1535096041126	geckodriver	INFO	geckodriver 0.21.0
+1535096041131	geckodriver	INFO	Listening on 127.0.0.1:59899
+1535096042137	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.UtTjYHx2nOtd"
+1535096044502	Marionette	INFO	Listening on port 43415
+1535096044581	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 26275, Gecko_IOThread] WARNING: pipe error (75): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+*** UTM:SVC TimerManager:registerTimer called after profile-before-change notification. Ignoring timer registration for id: telemetry_modules_ping
+1535096073744	geckodriver	INFO	geckodriver 0.21.0
+1535096073750	geckodriver	INFO	Listening on 127.0.0.1:59475
+1535096074757	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.6MFREHD88CPZ"
+1535096076790	Marionette	INFO	Listening on port 43457
+1535096076871	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 26568, Gecko_IOThread] WARNING: pipe error (78): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+[Parent 26568, Gecko_IOThread] WARNING: pipe error (54): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+*** UTM:SVC TimerManager:registerTimer called after profile-before-change notification. Ignoring timer registration for id: telemetry_modules_ping
+1535096146676	geckodriver	INFO	geckodriver 0.21.0
+1535096146683	geckodriver	INFO	Listening on 127.0.0.1:34089
+1535096147690	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.d3Jhb8OS9K6G"
+1535096149796	Marionette	INFO	Listening on port 43393
+1535096149902	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 27282, Gecko_IOThread] WARNING: pipe error (78): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+*** UTM:SVC TimerManager:registerTimer called after profile-before-change notification. Ignoring timer registration for id: telemetry_modules_ping
+1535096180160	geckodriver	INFO	geckodriver 0.21.0
+1535096180165	geckodriver	INFO	Listening on 127.0.0.1:33703
+1535096181168	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.YZ40LDaFFA0T"
+1535096183216	Marionette	INFO	Listening on port 46519
+1535096183289	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 27558, Gecko_IOThread] WARNING: pipe error (75): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+1535096625274	geckodriver	INFO	geckodriver 0.21.0
+1535096625281	geckodriver	INFO	Listening on 127.0.0.1:42005
+1535096626287	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.62wqOqWzbvoP"
+1535096628313	Marionette	INFO	Listening on port 45207
+1535096628402	Marionette	WARN	TLS certificate errors will be ignored for this session
+1535096720506	geckodriver	INFO	geckodriver 0.21.0
+1535096720512	geckodriver	INFO	Listening on 127.0.0.1:45337
+1535096721519	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.TzSwWjZ15KhD"
+1535096723585	Marionette	INFO	Listening on port 42453
+1535096723653	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 28376, Gecko_IOThread] WARNING: pipe error (78): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+[Parent 28039, Gecko_IOThread] WARNING: pipe error (76): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+1535097099363	geckodriver	INFO	geckodriver 0.21.0
+1535097099369	geckodriver	INFO	Listening on 127.0.0.1:51413
+1535097100377	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.z8CCphCWcllV"
+1535097102436	Marionette	INFO	Listening on port 33687
+1535097102516	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 28803, Gecko_IOThread] WARNING: pipe error (78): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+*** UTM:SVC TimerManager:registerTimer called after profile-before-change notification. Ignoring timer registration for id: telemetry_modules_ping
+1535097228945	geckodriver	INFO	geckodriver 0.21.0
+1535097228952	geckodriver	INFO	Listening on 127.0.0.1:43669
+1535097229958	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.4qjoh4I135zg"
+1535097232046	Marionette	INFO	Listening on port 35521
+1535097232086	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 29182, Gecko_IOThread] WARNING: pipe error (76): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+*** UTM:SVC TimerManager:registerTimer called after profile-before-change notification. Ignoring timer registration for id: telemetry_modules_ping
+1535097330597	geckodriver	INFO	geckodriver 0.21.0
+1535097330602	geckodriver	INFO	Listening on 127.0.0.1:51839
+1535097331604	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.Rkx1Yn6aknW6"
+1535097333856	Marionette	INFO	Listening on port 45579
+1535097333938	Marionette	WARN	TLS certificate errors will be ignored for this session
+[Parent 29553, Gecko_IOThread] WARNING: pipe error (78): 连接被对方重设: file /build/firefox-oscv9o/firefox-61.0.1+build1/ipc/chromium/src/chrome/common/ipc_channel_posix.cc, line 353
+*** UTM:SVC TimerManager:registerTimer called after profile-before-change notification. Ignoring timer registration for id: telemetry_modules_ping
