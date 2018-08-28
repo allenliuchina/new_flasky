@@ -1,11 +1,26 @@
 from .. import db
-from flask import render_template, redirect, url_for, session, abort, flash, request, make_response
+from flask import render_template, redirect, url_for, session, abort, flash, request, make_response, current_app, \
+    send_from_directory
 from . import main
 from datetime import datetime
 from ..models import User, Role, Permission, Post, Comment
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from flask_login import current_user, login_required
 from ..decorators import permission_required
+from flask_sqlalchemy import get_debug_queries
+import os
+from PIL import Image
+
+
+@main.after_app_request
+def after_request(response):
+    for query in get_debug_queries():
+        if query.duration >= current_app.config['FLASKY_SLOW_DB_QUERY_TIME']:
+            current_app.logger.warning(
+                'Slow query: %s\nParameters: %s\nDuration: %fs\nContext: %s\n'
+                % (query.statement, query.parameters, query.duration,
+                   query.context))
+    return response
 
 
 @main.route('/', methods=['POST', 'GET'])
@@ -62,6 +77,24 @@ def edit_profile():
         current_user.username = form.name.data
         current_user.location = form.location.data
         current_user.about_me = form.about_me.data
+        f = form.photo.data
+        if f:
+            if current_user.file_name:
+                try:
+                    os.remove(current_app.config['UPLOAD_FOLDER'] + '/photos' + current_user.file_name)
+                    os.remove(current_app.config['UPLOAD_FOLDER'] + '/miniphotos' + current_user.file_name)
+                except OSError:
+                    pass
+            filename = str(current_user.id) + '.' + f.filename.split('.')[-1]
+            f_1 = Image.open(f)
+            f_1.thumbnail((256, 256))
+            real_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'photos', filename)
+            f_1.save(real_file_path)
+            f_2 = Image.open(f)
+            f_2.thumbnail((32, 32))
+            mini_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'miniphotos', filename)
+            f_2.save(mini_file_path)
+            current_user.file_name = filename
         db.session.add(current_user)
         flash('You profile has been updated.')
         return redirect(url_for('.user', username=current_user.username))
@@ -69,6 +102,17 @@ def edit_profile():
     form.location.data = current_user.location
     form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', form=form)
+
+
+@main.route('/photo/<filename>')
+def photo(filename):
+    size = request.args.get('size', None, type=int)
+    if size == 256:
+        return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/photos', filename)
+    elif size == 32:
+        return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/miniphotos', filename)
+    else:
+        abort(404)
 
 
 @main.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
@@ -230,3 +274,26 @@ def moderate_disable(id):
     db.session.commit()
     return redirect(url_for('.moderate',
                             page=request.args.get('page', 1, type=int)))
+
+
+@main.route('/shutdown')
+def server_shutdown():
+    if not current_app.testing:
+        abort(404)
+    shutdown = request.environ.get('werkzeug.server.shutdown')
+    if not shutdown:
+        abort(500)
+    shutdown()
+    return 'Shutting down...'
+
+
+@main.route('/search', methods=['POST'])
+def search():
+    kw = request.form['search']
+    return redirect(url_for('.search_results', kw=kw))
+
+
+@main.route('/search_results/<kw>')
+def search_results(kw):
+    results = Post.query.whoosh_search(kw).all()
+    return render_template('search.html', posts=results)

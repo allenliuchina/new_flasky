@@ -3,6 +3,7 @@ from wtforms import SubmitField, StringField, TextAreaField, BooleanField, Selec
 from wtforms.validators import DataRequired, Length, Email, Regexp
 from ..models import Role, User
 from flask_pagedown.fields import PageDownField
+from flask_wtf.file import FileRequired, FileField
 
 
 class NameForm(Form):
@@ -18,6 +19,7 @@ class EditProfileForm(Form):
     name = StringField('Real name', validators=[Length(0, 64)])
     location = StringField('Location', validators=[Length(0, 64)])
     about_me = TextAreaField('About me')
+    photo = FileField('Your photo')
     submit = SubmitField('Submit')
 
 
@@ -53,6 +55,5 @@ class PostForm(Form):
 
 
 class CommentForm(Form):
-    body = StringField('',validators=[DataRequired()])
+    body = StringField('', validators=[DataRequired()])
     submit = SubmitField('Submit')
-

@@ -3,11 +3,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
 from . import login_manager
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import current_app, request
+from flask import current_app, request, url_for
 from datetime import datetime
 import hashlib
 from markdown import markdown
 import bleach
+from .exceptions import ValidationError
+from jieba.analyse.analyzer import ChineseAnalyzer
 
 
 class Permission():
@@ -15,14 +17,14 @@ class Permission():
     COMMENT = 0x02
     WRITE_ARTICLES = 0x04
     MODERATE_COMMENTS = 0x08
-    ADMINISTER = 0x16
+    ADMINISTER = 0x80
 
 
 class Follow(db.Model):
     __tablename__ = 'follows'
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow())
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Role(db.Model):
@@ -39,8 +41,8 @@ class Role(db.Model):
     @staticmethod
     def insert_roles():
         roles = {
-            'User': (Permission.COMMENT | Permission.FOLLOW | Permission.WRITE_ARITICLES, True),
-            'Moderator': (Permission.FOLLOW | Permission.WRITE_ARITICLES | Permission.COMMENT |
+            'User': (Permission.COMMENT | Permission.FOLLOW | Permission.WRITE_ARTICLES, True),
+            'Moderator': (Permission.FOLLOW | Permission.WRITE_ARTICLES | Permission.COMMENT |
                           Permission.MODERATE_COMMENTS, False),
             'Administrator': (0xff, False)
 
@@ -69,6 +71,7 @@ class User(db.Model, UserMixin):
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
+    file_name = db.Column(db.String(64))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     followed = db.relationship('Follow', foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
@@ -128,15 +131,15 @@ class User(db.Model, UserMixin):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    def init__(self, **kwargs):
+    def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
             if self.email == current_app.config['FLASKY_ADMIN']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
-            if self.role is None:
-                self.role = Role.query.filter_by(default=True).first()
-            if self.email is not None and self.avatar_hash is None:
-                self.avatar_hash = hashlib.md5(self.email.encode('utf-8').hexdigest())
+            else:
+                self.role = Role.query.filter_by(name='User').first()
+        if self.email is not None and self.avatar_hash is None:
+            self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
     def can(self, permissions):
         return self.role is not None and (self.role.permissions & permissions) == permissions
@@ -149,6 +152,10 @@ class User(db.Model, UserMixin):
         db.session.add(self)
 
     def gravatar(self, size=100, default='identicon', rating='g'):
+        if size == 256 and self.file_name:
+            return url_for('main.photo', filename=self.file_name, size=256)
+        if size == 32 and self.file_name:
+            return url_for('main.photo', filename=self.file_name, size=32)
         if request.is_secure:
             url = 'https://secure.gravatar.com/avatar'
         else:
@@ -194,7 +201,7 @@ class User(db.Model, UserMixin):
         if self.query.filter_by(email=new_email).first() is not None:
             return False
         self.email = new_email
-        self.avatar_hash = self.gravatar_hash()
+        self.avatar_hash = self.gravatar()
         db.session.add(self)
         return True
 
@@ -225,6 +232,31 @@ class User(db.Model, UserMixin):
     def followed_posts(self):
         return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
 
+    def generate_auth_token(self, expiration):
+        s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
+        return s.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
+
+    def to_json(self):
+        json_user = {
+            'url': url_for('api.get_user', id=self.id, _external=True),
+            'username': self.username,
+            'member_since': self.member_since,
+            'last_seen': self.last_seen,
+            'posts': url_for('api.get_user_posts', id=self.id, _external=True),
+            'followed_posts': url_for('api.get_user_followed_posts', id=self.id, _external=True),
+            'post_count': self.posts.count()
+        }
+        return json_user
+
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
@@ -238,6 +270,8 @@ login_manager.anonymous_user = AnonymousUser
 
 
 class Post(db.Model):
+    __searchable__ = ['body']
+    __analyzer__ = ChineseAnalyzer()
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
@@ -268,8 +302,29 @@ class Post(db.Model):
         target.body_html = bleach.linkify(bleach.clean(markdown(value, output_format='html'), tags=allowed_tags,
                                                        strip=True))
 
+    def to_json(self):
+        json_post = {
+            'url': url_for('api.get_post', id=self.id, _external=True),
+            'body': self.body,
+            'body_html': self.body_html,
+            'timestamp': self.timestamp,
+            'author': url_for('api.get_user', id=self.author_id, _external=True),
+            'comments': url_for('api.get_post_comments', id=self.id, _external=True),
+            'comment_count': self.comments.count()
+        }
+        return json_post
+
+    @staticmethod
+    def from_json(json_post):
+        body = json_post.get('body')
+        if body is None or body == '':
+            raise ValidationError('post does not have a body ')
+        return Post(body=body)
+
 
 class Comment(db.Model):
+    __searchable__ = ['body']
+    __analyzer__ = ChineseAnalyzer()
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
@@ -285,7 +340,25 @@ class Comment(db.Model):
         target.body_html = bleach.linkify(
             bleach.clean(markdown(value, output_format='html'), tags=allowed_tags, strip=True))
 
+    def to_json(self):
+        json_comment = {
+            'url': url_for('api.get_comment', id=self.id, _external=True),
+            'body': self.body,
+            'body_html': self.body_html,
+            'timestamp': self.timestamp,
+            'disabled': self.disabled,
+            'author': url_for('api.get_user', id=self.author_id, _external=True),
+            'post': url_for('api.get_post', id=self.post_id, _external=True)
+        }
+        return json_comment
+
+    @staticmethod
+    def from_json(json_comment):
+        body = json_comment.get('body')
+        if body is None or body == '':
+            raise ValidationError('comments does not have a body ')
+        return Comment(body=body)
+
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
-
 db.event.listen(Post.body, 'set', Post.on_change_body)
