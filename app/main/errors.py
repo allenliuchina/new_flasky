@@ -10,7 +10,7 @@ def page_not_found(e):
 @main.app_errorhandler(404)
 def page_not_found(e):
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
-        response = jsonify({'error': 'not found'})
+        response = jsonify({'error': '没有找到'})
         response.status_code = 404
         return response
     return render_template('404.html'), 404
@@ -19,7 +19,7 @@ def page_not_found(e):
 @main.app_errorhandler(500)
 def interval_server_error(e):
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
-        response = jsonify({'error': 'interval error'})
+        response = jsonify({'error': '内部错误'})
         response.status_code = 500
         return response
     return render_template('500.html'), 500

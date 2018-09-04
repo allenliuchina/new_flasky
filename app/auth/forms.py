@@ -6,7 +6,7 @@ from ..models import User
 
 class LoginForm(FlaskForm):
     email = StringField('邮箱', validators=[DataRequired(message='邮箱不能为空'), Length(1, 64, message='邮箱地址长度不合适'),
-                                          Email(message='邮箱不合法')])
+                                          Email(message='你输入的不是邮箱地址')])
     password = PasswordField('密码', validators=[DataRequired(message='密码不能为空')])
     remember_me = BooleanField('记住我')
     submit = SubmitField('登录')
@@ -31,8 +31,8 @@ class RegisterForm(FlaskForm):
     email = StringField('邮箱', validators=[DataRequired(), Length(1, 64), Email()])
     username = StringField('用户名', validators=[DataRequired(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$',
                                                                                     0,
-                                                                                    '用户名只能含有数字、字母、下划线')])
-    password = PasswordField('用户名',
+                                                                                    '用户名只能含有数字、字母、下划线，要以字母开头')])
+    password = PasswordField('密码',
                              validators=[DataRequired(), EqualTo('password2', message='密码必须匹配.')])
     password2 = PasswordField('确认密码', validators=[DataRequired()])
     submit = SubmitField('注册')
@@ -50,7 +50,7 @@ class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('旧密码', validators=[DataRequired()])
     password = PasswordField('新密码', validators=[
         DataRequired(), EqualTo('password2', message='密码必须匹配.')])
-    password2 = PasswordField('Confirm new password',
+    password2 = PasswordField('确认新密码',
                               validators=[DataRequired()])
     submit = SubmitField('重设密码')
 

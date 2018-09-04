@@ -3,7 +3,7 @@ from wtforms import SubmitField, StringField, TextAreaField, BooleanField, Selec
 from wtforms.validators import DataRequired, Length, Email, Regexp
 from ..models import Role, User
 from flask_pagedown.fields import PageDownField
-from flask_wtf.file import FileRequired, FileField
+from flask_wtf.file import  FileField
 
 
 class NameForm(Form):
@@ -16,7 +16,7 @@ class SubmitForm(Form):
 
 
 class EditProfileForm(Form):
-    name = StringField('真是名字', validators=[Length(0, 64)])
+    name = StringField('真实名字', validators=[Length(0, 64)])
     location = StringField('家乡', validators=[Length(0, 64)])
     about_me = TextAreaField('介绍一下自己吧')
     photo = FileField('你的头像')
@@ -26,7 +26,7 @@ class EditProfileForm(Form):
 class EditProfileAdminForm(Form):
     email = StringField('邮箱', validators=[Length(1, 64), DataRequired(), Email()])
     username = StringField('用户名', validators=[Length(1, 64), DataRequired(), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
-                                                                                    '用户名只能含有数字、字母、下划线')])
+                                                                                    '用户名只能含有数字、字母、下划线，并且要以字母开头')])
     confirmed = BooleanField('确认')
     role = SelectField('角色', coerce=int)
     name = StringField('真实名字', validators=[Length(0, 64)])

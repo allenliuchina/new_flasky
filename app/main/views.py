@@ -39,7 +39,7 @@ def index():
         query = current_user.followed_posts
     else:
         query = Post.query
-    pagination = query.order_by(Post.timestamp .desc()).paginate(
+    pagination = query.order_by(Post.timestamp.desc()).paginate(
         page, per_page=10, error_out=False)
     posts = pagination.items
     return render_template('index.html', form=form, posts=posts,
@@ -179,7 +179,7 @@ def edit_post(id):
 def follow(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
-        flash('Invalid user')
+        flash('无效的用户')
         return redirect(url_for('.index'))
     if current_user.is_following(user):
         flash('你已经关注了这个用户')
@@ -194,7 +194,7 @@ def follow(username):
 def unfollow(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
-        flash('Invalid user')
+        flash('无效的用户')
         return redirect(url_for('.index'))
     if not current_user.is_following(user):
         flash('你现在没有在关注这个用户')
@@ -208,7 +208,7 @@ def unfollow(username):
 def followers(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
-        flash('Invalid user')
+        flash('无效的用户')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
     pagination = user.followers.paginate(page, per_page=5, error_out=False)
@@ -221,7 +221,7 @@ def followers(username):
 def followed_by(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
-        flash('Invalid user')
+        flash('无效的用户')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
     pagination = user.followed.paginate(page, per_page=5, error_out=False)
@@ -235,7 +235,7 @@ def followed_by(username):
 def delete_post(id):
     post = Post.query.get_or_404(id)
     if post is None:
-        flash("Invalid post'id")
+        flash("无效的博客ID")
         return redirect(url_for('.index'))
     if post.author == current_user or current_user.can(Permission.ADMINISTER):
         db.session.delete(post)

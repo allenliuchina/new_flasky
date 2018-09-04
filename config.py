@@ -9,7 +9,8 @@ class Config():
     FLASKY_ADMIN = '1111@123.com'
     SQLALCHEMY_RECORD_QUERIES = True
     FLASKY_SLOW_DB_QUERY_TIME = 0.5
-    UPLOAD_FOLDER = '/home/lya/doc/new_flasky/instances'
+    # UPLOAD_FOLDER = '/home/lya/doc/new_flasky/instances'
+    UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__name__)), 'instances')
 
 
 class TestConfig(Config):
