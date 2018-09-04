@@ -23,22 +23,22 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li><a href="{{ url_for('main.index') }}">主页</a></li>
                     {% if current_user.is_authenticated %}
-                        <li><a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
+                        <li><a href="{{ url_for('main.user', username=current_user.username) }}">资料</a></li>
                     {% endif %}
                     {% if current_user.can(Permission.MODERATE_COMMENTS) %}
-                        <li><a href="{{ url_for('main.moderate') }}">Moderate Comments</a></li>
+                        <li><a href="{{ url_for('main.moderate') }}">管理评论</a></li>
                     {% endif %}
                 </ul>
                 <div class="col-lg-4">
 
-                        <form class="navbar-form navbar-left" action="{{ url_for('main.search') }}" method="POST">
-                            <div class="form-group">
-                                <input type="text" class="form-control" placeholder="站内搜索" name="search">
-                            </div>
-                            <button type="submit" class="btn btn-default">搜索</button>
-                        </form>
+                    <form class="navbar-form navbar-left" action="{{ url_for('main.search') }}" method="POST">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="站内搜索" name="search">
+                        </div>
+                        <button type="submit" class="btn btn-default">搜索</button>
+                    </form>
 
                 </div>
 
@@ -46,16 +46,16 @@
                     {% if current_user.is_authenticated %}
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                Account <b class="caret"></b>
+                                账户 <b class="caret"></b>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a href="{{ url_for('auth.change_password') }}">Change Password</a></li>
-                                <li><a href="{{ url_for('auth.change_email_request') }}">Change Email</a></li>
-                                <li><a href="{{ url_for('auth.log_out') }}">Log Out</a></li>
+                                <li><a href="{{ url_for('auth.change_password') }}">修改密码</a></li>
+                                <li><a href="{{ url_for('auth.change_email_request') }}">修改邮箱</a></li>
+                                <li><a href="{{ url_for('auth.log_out') }}">注销</a></li>
                             </ul>
                         </li>
                     {% else %}
-                        <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
+                        <li><a href="{{ url_for('auth.login') }}">登录</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -79,4 +79,5 @@
 {% block scripts %}
     {{ super() }}
     {{ moment.include_moment() }}
+    {{ moment.locale('zh-cn') }}
 {% endblock %}

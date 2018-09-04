@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}登录{% endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>登录</h1>
+    </div>
+    <script src="http://code.jquery.com/jquery-1.12.3.min.js"></script>
+        <form id="loginform" method="POST" >
+            <table>
+                {{ form.hidden_tag() }}
+                <tr>
+                    <td>
+                        邮箱
+                    </td>
+                    <td>
+                        {{ form.email }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        密码
+                    </td>
+                    <td>
+                        {{ form.password }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        记住我
+                    </td>
+                    <td>
+                        {{ form.remember_me }}
+                    </td>
+                </tr>
+            </table>
+
+            <button type="button" id="btn">提交</button>
+        </form>
+    <script>
+        $(function () {
+            $('#btn').click(function () {
+                //ajax提交
+                post_data = $('#loginform').serialize();
+                $.ajax({
+                    url: "/login",
+                    type: 'POST',
+                    data: post_data,
+                    success: function (data) {
+                        if (data.status == 200) {
+                            window.location = '/'
+                        }
+                        else {
+                            alert(data.message)
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <br>
+    <p>忘记密码? <a href="{{ url_for('auth.password_reset_request') }}">点击这里重设密码</a>.</p>
+    <p>新用户? <a href="{{ url_for('auth.register') }}">点击这里注册</a>.</p>
+{% endblock %}

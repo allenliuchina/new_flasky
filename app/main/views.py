@@ -10,6 +10,7 @@ from ..decorators import permission_required
 from flask_sqlalchemy import get_debug_queries
 import os
 from PIL import Image
+from ..auth.forms import LoginForm
 
 
 @main.after_app_request
@@ -38,7 +39,7 @@ def index():
         query = current_user.followed_posts
     else:
         query = Post.query
-    pagination = query.order_by(Post.timestamp.desc()).paginate(
+    pagination = query.order_by(Post.timestamp .desc()).paginate(
         page, per_page=10, error_out=False)
     posts = pagination.items
     return render_template('index.html', form=form, posts=posts,
@@ -81,8 +82,8 @@ def edit_profile():
         if f:
             if current_user.file_name:
                 try:
-                    os.remove(current_app.config['UPLOAD_FOLDER'] + '/photos' + current_user.file_name)
-                    os.remove(current_app.config['UPLOAD_FOLDER'] + '/miniphotos' + current_user.file_name)
+                    os.remove(current_app.config['UPLOAD_FOLDER'] + '/photos/' + current_user.file_name)
+                    os.remove(current_app.config['UPLOAD_FOLDER'] + '/miniphotos/' + current_user.file_name)
                 except OSError:
                     pass
             filename = str(current_user.id) + '.' + f.filename.split('.')[-1]
@@ -96,7 +97,7 @@ def edit_profile():
             f_2.save(mini_file_path)
             current_user.file_name = filename
         db.session.add(current_user)
-        flash('You profile has been updated.')
+        flash('你的资料已经更新')
         return redirect(url_for('.user', username=current_user.username))
     form.name.data = current_user.username
     form.location.data = current_user.location
@@ -123,14 +124,14 @@ def edit_profile_admin(id):
         user.email = form.email.data
         user.username = form.username.data
         user.confirmed = form.confirmed.data
-        user.role = form.role.data
+        user.role = Role.query.get(form.role.data)
         user.name = form.name.data
         user.location = form.location.data
         user.about_me = form.about_me.data
         db.session.add(user)
-        flash('The profile has been updated')
+        flash('资料已经更新')
         return redirect(url_for('.user', username=user.username))
-    form.email.data = user.name
+    form.email.data = user.email
     form.username.data = user.username
     form.confirmed.data = user.confirmed
     form.role.data = user.role_id
@@ -147,7 +148,7 @@ def post(id):
     if form.validate_on_submit():
         comment = Comment(author=current_user._get_current_object(), post=post, body=form.body.data)
         db.session.add(comment)
-        flash('Your comment has been published.')
+        flash('你的评论已经发布')
         return redirect(url_for('.post', id=post.id, page=-1))
     page = request.args.get('page', 1, type=int)
     if page == -1:
@@ -166,7 +167,7 @@ def edit_post(id):
     if form.validate_on_submit():
         post.body = form.body.data
         db.session.add(post)
-        flash('The post has been updated')
+        flash('博客已被更新')
         return redirect(url_for('.post', id=post.id))
     form.body.data = post.body
     return render_template('edit_post.html', form=form)
@@ -181,10 +182,10 @@ def follow(username):
         flash('Invalid user')
         return redirect(url_for('.index'))
     if current_user.is_following(user):
-        flash('You are already following this user')
+        flash('你已经关注了这个用户')
         return redirect(url_for('.index'))
     current_user.follow(user)
-    flash('You are now following %s.' % username)
+    flash('你现在关注了 %s.' % username)
     return redirect(url_for('.user', username=username))
 
 
@@ -196,10 +197,10 @@ def unfollow(username):
         flash('Invalid user')
         return redirect(url_for('.index'))
     if not current_user.is_following(user):
-        flash('You are not following this user')
+        flash('你现在没有在关注这个用户')
         return redirect(url_for('.index'))
     current_user.unfollow(user)
-    flash('You are not flollowing %s' % username)
+    flash('你已取消关注 %s' % username)
     return redirect(url_for('.user', username=username))
 
 
@@ -212,7 +213,7 @@ def followers(username):
     page = request.args.get('page', 1, type=int)
     pagination = user.followers.paginate(page, per_page=5, error_out=False)
     follows = [{'user': item.follower, 'timestamp': item.timestamp} for item in pagination.items]
-    return render_template('followers.html', pagination=pagination, follows=follows, user=user, title='Followers of ',
+    return render_template('followers.html', pagination=pagination, follows=follows, user=user, title='关注我的 ',
                            endpoint='.followers')
 
 
@@ -225,7 +226,7 @@ def followed_by(username):
     page = request.args.get('page', 1, type=int)
     pagination = user.followed.paginate(page, per_page=5, error_out=False)
     follows = [{'user': item.followed, 'timestamp': item.timestamp} for item in pagination.items]
-    return render_template('followers.html', pagination=pagination, follows=follows, user=user, title='Followed by ',
+    return render_template('followers.html', pagination=pagination, follows=follows, user=user, title='我关注的 ',
                            endpoint='.followed_by')
 
 
@@ -289,11 +290,16 @@ def server_shutdown():
 
 @main.route('/search', methods=['POST'])
 def search():
-    kw = request.form['search']
+    kw = request.form.get('search')
+    if len(kw) == 0:
+        return redirect(url_for('.index'))
     return redirect(url_for('.search_results', kw=kw))
 
 
 @main.route('/search_results/<kw>')
 def search_results(kw):
+    content = 1
     results = Post.query.whoosh_search(kw).all()
-    return render_template('search.html', posts=results)
+    if len(results) == 0:
+        content = 0
+    return render_template('search.html', posts=results, content=content)

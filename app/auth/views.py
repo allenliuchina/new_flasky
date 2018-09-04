@@ -1,4 +1,4 @@
-from flask import render_template, url_for, redirect, flash, request
+from flask import render_template, url_for, redirect, flash, request, jsonify
 from flask_login import login_user, login_required, logout_user, current_user
 from . import auth
 from ..models import User
@@ -8,16 +8,32 @@ from .. import db
 from ..email import send_email
 
 
+# @auth.route('/login', methods=['GET', 'POST'])
+# def login():
+#     form = LoginForm()
+#     if form.validate_on_submit():
+#         user = User.query.filter_by(email=form.email.data).first()
+#         if user is not None and user.verify_password(form.password.data):
+#             login_user(user, form.remember_me.data)
+#             return redirect(url_for('main.index'))
+#         flash('Invalid username or password.')
+#     return render_template('auth/login.html', form=form)
+
+
+#
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    if request.method == 'GET':
+        return render_template('auth/login_test.html', form=form)
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
-            return redirect(url_for('main.index'))
-        flash('Invalid username or password.')
-    return render_template('auth/login.html', form=form)
+            return jsonify({'status': 200})
+        return jsonify({'status': 400, 'message': '用户名和密码不匹配'})
+    message = form.get_errors()
+    return jsonify({'status': 400, 'message': message})
 
 
 @auth.route('/logout')
