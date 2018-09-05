@@ -45,11 +45,8 @@ tmp
  
 whoosh_index
 
-instances
 
 .idea
 
-.jpg
-.jpeg
-.png
-.gif
+app/static/miniphotos
+app/static/photos
