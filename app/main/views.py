@@ -33,20 +33,25 @@ def index():
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
     show_followed = False
+    order_by = bool(request.cookies.get('order_by', ''))
     if current_user.is_authenticated:
         show_followed = bool(request.cookies.get('show_followed', ''))
     if show_followed:
         query = current_user.followed_posts
     else:
         query = Post.query
-    pagination = query.order_by(Post.timestamp.desc()).paginate(
+    if not order_by:
+        temp = Post.comments_sum.desc()
+    else:
+        temp = Post.timestamp.desc()
+    pagination = query.order_by(temp).paginate(
         page, per_page=10, error_out=False)
     posts = pagination.items
-    return render_template('index.html', form=form, posts=posts,
+    return render_template('index_test.html', form=form, posts=posts,
                            show_followed=show_followed, pagination=pagination)
 
 
-@main.route('/all')
+@main.route('/all/')
 @login_required
 def show_all():
     resp = make_response(redirect(url_for('.index')))
@@ -54,15 +59,29 @@ def show_all():
     return resp
 
 
-@main.route('/followed')
+@main.route('/followed/')
 @login_required
 def show_followed():
     resp = make_response(redirect(url_for('.index')))
-    resp.set_cookie('show_followed', '1', max_age=30 * 24 * 60 * 60)
+    resp.set_cookie('show_followed', 'email', max_age=30 * 24 * 60 * 60)
     return resp
 
 
-@main.route('/user/<username>')
+@main.route('/time/')
+def order_by_time():
+    resp = make_response(redirect(url_for('.index')))
+    resp.set_cookie('order_by', 'time', max_age=30 * 24 * 60 * 60)
+    return resp
+
+
+@main.route('/comments/')
+def order_by_comments():
+    resp = make_response(redirect(url_for('.index')))
+    resp.set_cookie('order_by', '', max_age=30 * 24 * 60 * 60)
+    return resp
+
+
+@main.route('/user/<username>/')
 def user(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -71,7 +90,7 @@ def user(username):
     return render_template('user.html', user=user, posts=posts)
 
 
-@main.route('/edit-profile', methods=['GET', 'POST'])
+@main.route('/edit-profile/', methods=['GET', 'POST'])
 def edit_profile():
     form = EditProfileForm()
     if form.validate_on_submit():
@@ -105,7 +124,7 @@ def edit_profile():
     return render_template('edit_profile.html', form=form)
 
 
-@main.route('/photo/<filename>')
+@main.route('/photo/<filename>/')
 def photo(filename):
     size = request.args.get('size', None, type=int)
     if size == 256:
@@ -116,7 +135,7 @@ def photo(filename):
         abort(404)
 
 
-@main.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
+@main.route('/edit-profile/<int:id>/', methods=['GET', 'POST'])
 def edit_profile_admin(id):
     user = User.query.get_or_404(id)
     form = EditProfileAdminForm(user)
@@ -141,13 +160,15 @@ def edit_profile_admin(id):
     return render_template('edit_profile.html', form=form, user=user)
 
 
-@main.route('/post/<int:id>', methods=['GET', 'POST'])
+@main.route('/post/<int:id>/', methods=['GET', 'POST'])
 def post(id):
     post = Post.query.get_or_404(id)
     form = CommentForm()
     if form.validate_on_submit():
         comment = Comment(author=current_user._get_current_object(), post=post, body=form.body.data)
         db.session.add(comment)
+        db.session.commit()
+        post.comments_count()  # 评论提交后自动更新评论数量
         flash('你的评论已经发布')
         return redirect(url_for('.post', id=post.id, page=-1))
     page = request.args.get('page', 1, type=int)
@@ -158,7 +179,7 @@ def post(id):
     return render_template('post.html', posts=[post], form=form, comments=comments, pagination=pagination)
 
 
-@main.route('/edit_post/<int:id>', methods=['POST', 'GET'])
+@main.route('/edit_post/<int:id>/', methods=['POST', 'GET'])
 def edit_post(id):
     post = Post.query.get_or_404(id)
     if current_user != post.author and not current_user.can(Permission.ADMINISTER):
@@ -173,7 +194,7 @@ def edit_post(id):
     return render_template('edit_post.html', form=form)
 
 
-@main.route('/follow/<username>')
+@main.route('/follow/<username>/')
 @login_required
 @permission_required(Permission.FOLLOW)
 def follow(username):
@@ -189,7 +210,7 @@ def follow(username):
     return redirect(url_for('.user', username=username))
 
 
-@main.route('/unfollow/<username>')
+@main.route('/unfollow/<username>/')
 @login_required
 def unfollow(username):
     user = User.query.filter_by(username=username).first()
@@ -204,7 +225,7 @@ def unfollow(username):
     return redirect(url_for('.user', username=username))
 
 
-@main.route('/followers/<username>')
+@main.route('/followers/<username>/')
 def followers(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -217,7 +238,7 @@ def followers(username):
                            endpoint='.followers')
 
 
-@main.route('/followed_by/<username>')
+@main.route('/followed_by/<username>/')
 def followed_by(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -230,7 +251,7 @@ def followed_by(username):
                            endpoint='.followed_by')
 
 
-@main.route('/delete_post/<int:id>')
+@main.route('/delete_post/<int:id>/')
 @login_required
 def delete_post(id):
     post = Post.query.get_or_404(id)
@@ -243,7 +264,7 @@ def delete_post(id):
     abort(403)
 
 
-@main.route('/moderate')
+@main.route('/moderate/')
 @login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate():
@@ -253,7 +274,7 @@ def moderate():
     return render_template('moderate.html', comments=comments, pagination=pagination, page=page)
 
 
-@main.route('/moderate/enable/<int:id>')
+@main.route('/moderate/enable/<int:id>/')
 @login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate_enable(id):
@@ -265,7 +286,7 @@ def moderate_enable(id):
                             page=request.args.get('page', 1, type=int)))
 
 
-@main.route('/moderate/disable/<int:id>')
+@main.route('/moderate/disable/<int:id>/')
 @login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate_disable(id):
@@ -277,7 +298,7 @@ def moderate_disable(id):
                             page=request.args.get('page', 1, type=int)))
 
 
-@main.route('/shutdown')
+@main.route('/shutdown/')
 def server_shutdown():
     if not current_app.testing:
         abort(404)
@@ -288,7 +309,7 @@ def server_shutdown():
     return 'Shutting down...'
 
 
-@main.route('/search', methods=['POST'])
+@main.route('/search/', methods=['POST'])
 def search():
     kw = request.form.get('search')
     if len(kw) == 0:
@@ -296,7 +317,7 @@ def search():
     return redirect(url_for('.search_results', kw=kw))
 
 
-@main.route('/search_results/<kw>')
+@main.route('/search_results/<kw>/')
 def search_results(kw):
     content = 1
     results = Post.query.whoosh_search(kw).all()

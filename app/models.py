@@ -279,6 +279,17 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     body_html = db.Column(db.Text)
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
+    comments_sum = db.Column(db.Integer)
+
+    def comments_count(self):
+        self.comments_sum = self.comments.count()
+        db.session.add(self)
+
+    @staticmethod
+    def generate_sum():
+        for post in Post.query.all():
+            post.comments_count()
+        db.session.commit()
 
     @staticmethod
     def generate_fake(count=100):
