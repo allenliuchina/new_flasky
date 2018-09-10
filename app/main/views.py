@@ -1,6 +1,6 @@
 from .. import db
 from flask import render_template, redirect, url_for, session, abort, flash, request, make_response, current_app, \
-    send_from_directory
+    send_from_directory, g
 from . import main
 from datetime import datetime
 from ..models import User, Role, Permission, Post, Comment
@@ -10,7 +10,9 @@ from ..decorators import permission_required
 from flask_sqlalchemy import get_debug_queries
 import os
 from PIL import Image
-from ..auth.forms import LoginForm
+from flask_login import user_logged_in, user_loaded_from_cookie
+from .. import mc
+from datetime import timedelta
 
 
 @main.after_app_request
@@ -320,7 +322,26 @@ def search():
 @main.route('/search_results/<kw>/')
 def search_results(kw):
     content = 1
+    before = datetime.utcnow()
     results = Post.query.whoosh_search(kw).all()
+    after = datetime.utcnow()
+    print(after - before)
     if len(results) == 0:
         content = 0
     return render_template('search.html', posts=results, content=content)
+
+
+def record_log_in(sender, **args):
+    mc.set(str(current_user.id), 1, time=60)
+    print(current_user.id)
+
+
+user_logged_in.connect(record_log_in)
+user_loaded_from_cookie.connect(record_log_in)
+
+
+@main.route('/keeplive/')
+@login_required
+def keep_live():
+    mc.set(str(current_user.id), 1, time=60)
+    return 'ok'

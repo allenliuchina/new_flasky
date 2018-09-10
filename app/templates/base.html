@@ -75,9 +75,20 @@
         {% block page_content %}{% endblock %}
     </div>
 {% endblock %}
-
 {% block scripts %}
     {{ super() }}
     {{ moment.include_moment() }}
     {{ moment.locale('zh-cn') }}
+    <script>
+        function reloadView() {
+            $.ajax({
+                url: '/keeplive/',
+                type: 'GET',
+                success: function (result) {
+                }
+            })
+        }
+
+        setInterval('reloadView()', 55000);
+    </script>
 {% endblock %}

@@ -7,7 +7,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_pagedown import PageDown
 import flask_whooshalchemyplus
-
+import memcache
 
 mail = Mail()
 bootstrap = Bootstrap()
@@ -15,7 +15,9 @@ moment = Moment()
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+login_manager.session_protection = 'basic'
 pagedown = PageDown()
+mc = memcache.Client(['127.0.0.1:11211'], debug=True)
 
 
 def create_app(config_name):
@@ -34,5 +36,4 @@ def create_app(config_name):
     app.register_blueprint(auth)
     from .api_1_0 import api as api_1_0
     app.register_blueprint(api_1_0, url_prefix='/api/v1.0')
-
     return app

@@ -279,7 +279,7 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     body_html = db.Column(db.Text)
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
-    comments_sum = db.Column(db.Integer)
+    comments_sum = db.Column(db.Integer, default=0)
 
     def comments_count(self):
         self.comments_sum = self.comments.count()
@@ -298,7 +298,7 @@ class Post(db.Model):
 
         seed()
         user_count = User.query.count()
-        for i in range(user_count):
+        for i in range(count):
             u = User.query.offset(randint(0, user_count - 1)).first()
             p = Post(body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
                      timestamp=forgery_py.date.date(True),

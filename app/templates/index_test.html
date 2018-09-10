@@ -22,8 +22,6 @@
                 <li{% if show_followed %} class="active"{% endif %}><a
                         href="{{ url_for('.show_followed') }}">我关注的</a></li>
             {% endif %}
-
-
             <!-- Single button -->
             <div class="btn-group">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
@@ -43,6 +41,9 @@
             {{ macros.pagination_widget(pagination,'.index') }}
         </div>
     {% endif %}
+    <div class="test">
+        <p>当前在线 {{ curr_users }} 历史最高{{ greater_users }} </p>
+    </div>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
