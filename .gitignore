@@ -50,3 +50,5 @@ whoosh_index
 
 app/static/miniphotos
 app/static/photos
+
+.txt

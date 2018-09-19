@@ -3,7 +3,7 @@ from ..models import Permission
 from .. import mc
 
 main = Blueprint('main', __name__)
-from . import views, forms, errors
+from . import views, forms, errors, send_log
 
 
 def generate_greater_users():
