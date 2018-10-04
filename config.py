@@ -30,6 +30,7 @@ class TestConfig(Config):
 class DevConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:root@127.0.0.1/dev'
     # DEBUG = True
+    TEMPLATES_AUTO_RELOAD = True
 
 
 class ProdConfig(Config):

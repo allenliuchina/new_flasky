@@ -322,10 +322,10 @@ def search():
 @main.route('/search_results/<kw>/')
 def search_results(kw):
     content = 1
-    before = datetime.utcnow()
+    # before = datetime.utcnow()
     results = Post.query.whoosh_search(kw).all()
-    after = datetime.utcnow()
-    print(after - before)
+    # after = datetime.utcnow()
+    # print(after - before)
     if len(results) == 0:
         content = 0
     return render_template('search.html', posts=results, content=content)

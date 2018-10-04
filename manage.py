@@ -13,12 +13,13 @@ if os.path.exists('.env'):
         var = line.strip().split('=')
         if len(var) == 2:
             os.environ[var[0]] = var[1]
-from app import create_app, db
+from app import create_app, db, mc
 from app.models import User, Role, Post
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Shell
 
 app = create_app('dev')
+mc.set('greater_users', 0)
 manager = Manager(app)
 
 migrate = Migrate(app, db)

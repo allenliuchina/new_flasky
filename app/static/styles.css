@@ -137,5 +137,9 @@ div.flask-pagedown-preview h3 {
 
 div.test {
     text-align: center;
+    margin-bottom: 14px;
 
+}
+div.btn-group{
+    float: right;
 }
