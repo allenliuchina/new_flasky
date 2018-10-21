@@ -27,6 +27,16 @@ class Follow(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class Message(db.Model):
+    __tablename__ = 'messages'
+    id = db.Column(db.Integer, primary_key=True)
+    from_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    to_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    content = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    is_read = db.Column(db.Boolean, default=False)
+
+
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
@@ -80,6 +90,12 @@ class User(db.Model, UserMixin):
                                 backref=db.backref('followed', lazy='joined'),
                                 lazy='dynamic', cascade='all,delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
+    message_send = db.relationship('Message', foreign_keys=[Message.from_id],
+                                   backref=db.backref('m_from', lazy='joined'),
+                                   lazy='dynamic')
+    message_receive = db.relationship('Message', foreign_keys=[Message.to_id],
+                                      backref=db.backref('m_to', lazy='joined'),
+                                      lazy='dynamic')
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -257,6 +273,19 @@ class User(db.Model, UserMixin):
         }
         return json_user
 
+    def messages(self):
+        message = db.engine.execute(
+            'select a.id,a.timestamp,a.content,a.from_id,a.to_id,a.is_read,users.username from (select * from messages where messages.to_id=%s) as a join users on '
+            'a.from_id = users.id', [self.id])
+        return message
+
+    def history_message(self, id):
+        message = db.engine.execute(
+            'select * from messages as m where m.from_id=%s and m.to_id =%s union select * from messages as m1  where m1.from_id=%s and m1.to_id =%s'
+            ' order by timestamp ', [id, self.id, self.id, id]
+        )
+        return message
+
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
@@ -308,7 +337,8 @@ class Post(db.Model):
 
     @staticmethod
     def on_change_body(target, value, oldvalue, initiator):
-        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'pre', 'strong',
+                        'ul',
                         'h1', 'h2', 'h3', 'p']
         target.body_html = bleach.linkify(bleach.clean(markdown(value, output_format='html'), tags=allowed_tags,
                                                        strip=True))

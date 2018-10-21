@@ -51,6 +51,7 @@ div.post-content {
 
 div.post-footer {
     text-align: right;
+    text-decoration: none;
 }
 
 ul.comments {
@@ -137,9 +138,13 @@ div.flask-pagedown-preview h3 {
 
 div.test {
     text-align: center;
-    margin-bottom: 14px;
+    margin-bottom: 30px;
+
+
+
 
 }
-div.btn-group{
+
+div.btn-group {
     float: right;
 }

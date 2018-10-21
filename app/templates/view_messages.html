@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}Flasky - 查看消息{% endblock %}
+{% block page_content %}
+    <h2>全部消息</h2>
+    <br>
+    {% for message in messages %}
+        {% if message.is_read %}
+            {% set a=0.5 %}
+        {% else %}
+            {% set a=1 %}
+        {% endif %}
+        <ul style="border-bottom: 1px solid #e0e0e0;padding:20px 0px 20px;font-size: 16px;opacity:{{ a }};
+                color: black">
+            <div style="display:inline-block;width: 100px;">
+                <a href="{{ url_for('.user',username=message.username) }}"
+                   style="text-decoration:none;overflow: hidden;">{{ message.username }}</a>
+            </div>
+            <div style="display: inline-block">
+                <a style="text-decoration:none;">
+                    {{ message.content }}
+                </a>
+            </div>
+
+            <li style="float:right;padding-right: 30px;list-style-type: none">{{ moment(message.timestamp).format('LLL') }}</li>
+            {% if not message.is_read %}
+                <li style="float:right;padding-right: 30px;list-style-type: none;text-decoration: none"><a
+                        href="{{ url_for('.has_read',id=message.id) }}"
+                        style=";text-decoration: none;">huifu{{ message.id }}</a>
+                </li>
+            {% endif %}
+        </ul>
+
+
+    {% endfor %}
+{% endblock %}

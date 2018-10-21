@@ -1,10 +1,9 @@
 from .. import db
-from flask import render_template, redirect, url_for, session, abort, flash, request, make_response, current_app, \
-    send_from_directory, g
+from flask import render_template, redirect, url_for, abort, flash, request, make_response, current_app, \
+    send_from_directory, jsonify
 from . import main
-from datetime import datetime
-from ..models import User, Role, Permission, Post, Comment
-from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
+from ..models import User, Role, Permission, Post, Comment, Message
+from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm, EditMessage
 from flask_login import current_user, login_required
 from ..decorators import permission_required
 from flask_sqlalchemy import get_debug_queries
@@ -12,7 +11,6 @@ import os
 from PIL import Image
 from flask_login import user_logged_in, user_loaded_from_cookie
 from .. import mc
-from datetime import timedelta
 
 
 @main.after_app_request
@@ -176,7 +174,7 @@ def post(id):
     page = request.args.get('page', 1, type=int)
     if page == -1:
         page = (post.comments.count() - 1) // 30 + 1
-    pagination = post.comments.order_by(Comment.timestamp.desc()).paginate(page, per_page=30, error_out=False)
+    pagination = post.comments.order_by(Comment.timestamp.desc()).paginate(page, per_page=10, error_out=False)
     comments = pagination.items
     return render_template('post.html', posts=[post], form=form, comments=comments, pagination=pagination)
 
@@ -234,7 +232,7 @@ def followers(username):
         flash('无效的用户')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = user.followers.paginate(page, per_page=5, error_out=False)
+    pagination = user.followers.paginate(page, per_page=10, error_out=False)
     follows = [{'user': item.follower, 'timestamp': item.timestamp} for item in pagination.items]
     return render_template('followers.html', pagination=pagination, follows=follows, user=user, title='关注我的 ',
                            endpoint='.followers')
@@ -247,7 +245,7 @@ def followed_by(username):
         flash('无效的用户')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = user.followed.paginate(page, per_page=5, error_out=False)
+    pagination = user.followed.paginate(page, per_page=10, error_out=False)
     follows = [{'user': item.followed, 'timestamp': item.timestamp} for item in pagination.items]
     return render_template('followers.html', pagination=pagination, follows=follows, user=user, title='我关注的 ',
                            endpoint='.followed_by')
@@ -300,15 +298,16 @@ def moderate_disable(id):
                             page=request.args.get('page', 1, type=int)))
 
 
-@main.route('/shutdown/')
-def server_shutdown():
-    if not current_app.testing:
-        abort(404)
-    shutdown = request.environ.get('werkzeug.server.shutdown')
-    if not shutdown:
-        abort(500)
-    shutdown()
-    return 'Shutting down...'
+#
+# @main.route('/shutdown/')
+# def server_shutdown():
+#     if not current_app.testing:
+#         abort(404)
+#     shutdown = request.environ.get('werkzeug.server.shutdown')
+#     if not shutdown:
+#         abort(500)
+#     shutdown()
+#     return 'Shutting down...'
 
 
 @main.route('/search/', methods=['POST'])
@@ -322,18 +321,55 @@ def search():
 @main.route('/search_results/<kw>/')
 def search_results(kw):
     content = 1
-    # before = datetime.utcnow()
     results = Post.query.whoosh_search(kw).all()
-    # after = datetime.utcnow()
-    # print(after - before)
     if len(results) == 0:
         content = 0
     return render_template('search.html', posts=results, content=content)
 
 
+# 站内
+@main.route('/send_message/<username>/', methods=['POST', 'GET'])
+@login_required
+def send_message(username):
+    form = EditMessage()
+    if form.validate_on_submit():
+        content = request.form['body']
+        user = User.query.filter_by(username=username).first()
+        message = Message(m_from=current_user._get_current_object(), m_to=user, content=content)
+        db.session.add(message)
+        return redirect(url_for('.user', username=user.username))
+    user = current_user._get_current_object()
+    messages = user.history_message(user.id)
+    return render_template('edit_message.html', form=form, messages=messages, username=username)
+
+
+@main.route('/refresh_message/')
+@login_required
+def refresh_message():
+    counts = Message.query.filter_by(to_id=current_user.id, is_read=False).count()
+    return jsonify({'messages_count': counts})
+
+
+@main.route('/view_message/<username>')
+@login_required
+def view_message(username):
+    user = User.query.filter_by(username=username).first()
+    messages = user.messages()
+    return render_template('view_messages.html', messages=messages)
+
+
+@main.route('/has_read/<int:id>')
+@login_required
+def has_read(id):
+    message = Message.query.get_or_404(id)
+    message.is_read = True
+    db.session.add(message)
+    db.session.commit()
+    return redirect(url_for('.view_message', username=current_user.username))
+
+
 def record_log_in(sender, **args):
     mc.set(str(current_user.id), 1, time=60)
-    print(current_user.id)
 
 
 user_logged_in.connect(record_log_in)
