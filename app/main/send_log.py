@@ -5,7 +5,7 @@ from . import main
 import os
 
 mail_handler = SMTPHandler(
-    mailhost=('smtp.163.com', '25'),
+    mailhost=('smtp.163.com', '465'),
     fromaddr='15603363510@163.com',
     toaddrs=['772075034@qq.com'],
     subject='Application Error',

@@ -169,9 +169,9 @@ class User(db.Model, UserMixin):
 
     def gravatar(self, size=100, default='identicon', rating='g'):
         if size == 256 and self.file_name:
-            return url_for('main.photo', filename=self.file_name, size=256)
+            return url_for('main.photo', filename=self.file_name)
         if size == 32 and self.file_name:
-            return url_for('main.photo', filename=self.file_name, size=32)
+            return url_for('main.mini_photo', filename=self.file_name)
         if request.is_secure:
             url = 'https://secure.gravatar.com/avatar'
         else:

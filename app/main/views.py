@@ -125,14 +125,15 @@ def edit_profile():
 
 
 @main.route('/photo/<filename>/')
+@login_required
 def photo(filename):
-    size = request.args.get('size', None, type=int)
-    if size == 256:
-        return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/photos', filename)
-    elif size == 32:
-        return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/miniphotos', filename)
-    else:
-        abort(404)
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/photos', filename)
+
+
+@main.route('/mini_photo/<filename>/')
+@login_required
+def mini_photo(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/miniphotos', filename)
 
 
 @main.route('/edit-profile/<int:id>/', methods=['GET', 'POST'])

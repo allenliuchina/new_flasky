@@ -20,5 +20,6 @@ def generate_greater_users():
 
 @main.app_context_processor
 def inject_permissions():
+    greater_users = int(generate_greater_users())
     return dict(Permission=Permission, curr_users=int(mc.get_stats()[0][1].get('curr_items', 0)) - 1,
-                greater_users=int(generate_greater_users()))
+                greater_users=greater_users)
