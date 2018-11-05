@@ -124,13 +124,13 @@ def edit_profile():
     return render_template('edit_profile.html', form=form)
 
 
-@main.route('/photo/<filename>/')
+@main.route('/photo/<filename>')
 @login_required
 def photo(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/photos', filename)
 
 
-@main.route('/mini_photo/<filename>/')
+@main.route('/mini_photo/<filename>')
 @login_required
 def mini_photo(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'] + '/miniphotos', filename)
